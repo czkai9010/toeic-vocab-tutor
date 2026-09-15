@@ -1,0 +1,33 @@
+{
+  "coll": [
+    "a substitute for ~ — …的替代品",
+    "substitute A for B — 用 A 取代 B(新的在前、舊的在後)",
+    "substitute for someone — 代替某人、代班",
+    "there is no substitute for ~ — …是無可取代的"
+  ],
+  "createdAt": 1789395100000,
+  "day": "2026-01-06",
+  "ex": [
+    {
+      "en": "The café has run out of oat milk, so soy milk will be offered as a substitute.",
+      "zh": "咖啡館的燕麥奶用完了,將以豆漿替代。"
+    },
+    {
+      "en": "The recipe suggests substituting olive oil for butter.",
+      "zh": "食譜建議用橄欖油取代奶油。"
+    },
+    {
+      "en": "Mr. Alvarez will substitute for Ms. Kim while she is on leave.",
+      "zh": "Kim 女士休假期間將由 Alvarez 先生代理。"
+    }
+  ],
+  "pos": [
+    "n. 代替品、代理人、代課老師",
+    "v. 用…代替(substitute A for B)",
+    "v. 代打、頂替(substitute for someone)"
+  ],
+  "root": "sub-(在下面、接替)+ stitute(站立,拉丁 statuere)—— 站到原本那個位子去頂替。同家族:institute、constitute。",
+  "tip": "substitute 後面先講新的、replace 後面先講舊的,順序剛好相反。",
+  "word": "substitute",
+  "zh": "代替品、代班;代替(A for B)"
+}

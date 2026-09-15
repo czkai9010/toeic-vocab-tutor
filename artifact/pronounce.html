@@ -1,0 +1,803 @@
+<title>單字發音板</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{
+  --paper:#EEF1F4; --surface:#FFFFFF; --sunk:#E5EAEE;
+  --ink:#0F1720; --muted:#5A6976; --line:#D2DAE1;
+  --accent:#0B6E7F; --accent-soft:#DEEEF1;
+  --live:#A85F0C; --live-soft:#F7EBD8;
+  --shadow:0 1px 2px rgba(15,23,32,.05), 0 10px 28px -20px rgba(15,23,32,.35);
+  --mono:"IBM Plex Mono","Noto Sans TC",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"IBM Plex Sans","Noto Sans TC",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0B1116; --surface:#141C23; --sunk:#0E161C;
+    --ink:#E4EDF3; --muted:#8C9CA9; --line:#25313A;
+    --accent:#43B2C4; --accent-soft:#12303A;
+    --live:#E3A559; --live-soft:#2A2013;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -20px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0B1116; --surface:#141C23; --sunk:#0E161C;
+  --ink:#E4EDF3; --muted:#8C9CA9; --line:#25313A;
+  --accent:#43B2C4; --accent-soft:#12303A;
+  --live:#E3A559; --live-soft:#2A2013;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -20px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+}
+.wrap{
+  max-width:780px; margin:0 auto;
+  padding-inline:max(16px, env(safe-area-inset-left));
+  padding-block:30px 80px;
+}
+
+.eyebrow{font-family:var(--mono); font-size:11px; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--muted);}
+h1{font-size:21px; font-weight:600; letter-spacing:-.01em; margin:6px 0 4px; text-wrap:balance;}
+.sub{color:var(--muted); font-size:13.5px; margin:0 0 22px; max-width:56ch;}
+
+/* ---------- readout ---------- */
+.readout{background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  box-shadow:var(--shadow); padding:20px 20px 18px; margin-bottom:14px;}
+.readout.live{border-color:var(--live);}
+.readout-top{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;}
+.lamp{display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--muted);}
+.lamp i{width:7px; height:7px; border-radius:50%; background:var(--line); display:block; flex:none;}
+.readout.live .lamp{color:var(--live);}
+.readout.live .lamp i{background:var(--live); animation:pulse 1s ease-in-out infinite;}
+@keyframes pulse{50%{opacity:.28}}
+@media (prefers-reduced-motion:reduce){.readout.live .lamp i{animation:none}}
+
+.word-display{font-family:var(--mono); font-weight:500; letter-spacing:-.015em;
+  font-size:clamp(28px,7vw,44px); line-height:1.1; word-break:break-word; margin:0 0 4px;}
+.word-display.placeholder{color:var(--muted); opacity:.5;}
+.zh-display{font-size:14px; color:var(--muted); margin:0;}
+.icao{font-family:var(--mono); font-size:11.5px; letter-spacing:.05em; color:var(--muted);
+  word-break:break-word; margin:6px 0 0;}
+.readout-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;}
+
+button{font:inherit; cursor:pointer; border-radius:8px; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink); touch-action:manipulation;
+  transition:background .12s, border-color .12s, color .12s;}
+button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+button:disabled{opacity:.4; cursor:default;}
+.btn{min-height:42px; padding:9px 15px; font-size:14px; font-weight:500;
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;}
+@media (hover:hover){.btn:hover:not(:disabled){background:var(--sunk);}}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+@media (hover:hover){.btn.primary:hover:not(:disabled){filter:brightness(1.1);}}
+.btn svg{width:16px; height:16px; flex:none;}
+
+/* ---------- controls ---------- */
+.controls{display:flex; flex-wrap:wrap; align-items:center; gap:14px 20px;
+  padding:12px 16px; margin-bottom:22px;
+  background:var(--sunk); border:1px solid var(--line); border-radius:10px;}
+.ctl{display:flex; align-items:center; gap:9px; min-width:0;}
+.ctl-label{font-family:var(--mono); font-size:10.5px; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--muted); flex:none;}
+.seg{display:flex; border:1px solid var(--line); border-radius:7px; overflow:hidden; background:var(--surface);}
+.seg button{border:0; border-radius:0; min-height:36px; padding:6px 13px; font-size:13px;
+  font-family:var(--mono); background:transparent; color:var(--muted);}
+.seg button[aria-pressed="true"]{background:var(--accent-soft); color:var(--accent); font-weight:600;}
+input[type=range]{width:110px; accent-color:var(--accent); height:28px;}
+.rate-val{font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums;
+  color:var(--ink); min-width:3.4em;}
+select{font:inherit; font-size:13px; font-family:var(--mono); min-height:36px; padding:6px 9px;
+  max-width:200px; border:1px solid var(--line); border-radius:7px;
+  background:var(--surface); color:var(--ink);}
+
+/* ---------- day tabs ---------- */
+.days{display:flex; gap:8px; overflow-x:auto; padding:2px 0 12px; margin-bottom:2px;
+  scrollbar-width:thin; -webkit-overflow-scrolling:touch;}
+.days::-webkit-scrollbar{height:5px}
+.days::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px}
+.day{flex:none; min-height:44px; padding:7px 14px; border-radius:9px; background:var(--surface);
+  border:1px solid var(--line); display:flex; flex-direction:column; align-items:flex-start;
+  gap:1px; line-height:1.25;}
+.day[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff;}
+.day .d-label{font-family:var(--mono); font-size:13px; font-weight:500; white-space:nowrap;}
+.day .d-count{font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--muted);}
+.day[aria-pressed="true"] .d-count{color:rgba(255,255,255,.82);}
+.day .d-today{color:var(--accent); font-weight:600;}
+.day[aria-pressed="true"] .d-today{color:#fff;}
+
+/* ---------- list ---------- */
+.list-head{display:flex; align-items:center; justify-content:space-between; gap:12px;
+  flex-wrap:wrap; padding-bottom:9px; border-bottom:1.5px solid var(--ink);}
+.count{font-family:var(--mono); font-size:11px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--muted);}
+.head-actions{display:flex; gap:7px;}
+.mini{min-height:36px; padding:5px 12px; font-size:12.5px; font-family:var(--mono);}
+
+ul.words{list-style:none; margin:0 0 22px; padding:0;}
+ul.words li{display:grid; grid-template-columns:1fr auto; gap:2px 10px; align-items:center;
+  padding:10px 4px; border-bottom:1px solid var(--line); min-height:56px;}
+ul.words li.speaking{background:var(--live-soft); border-radius:6px;}
+.w-main{min-width:0;}
+.w-word{font-family:var(--mono); font-size:16.5px; font-weight:500; background:none; border:0;
+  padding:0; text-align:left; color:var(--ink); word-break:break-word; line-height:1.3; min-height:0;}
+@media (hover:hover){.w-word:hover{color:var(--accent);}}
+li.speaking .w-word{color:var(--live);}
+.w-zh{font-size:12.5px; color:var(--muted); word-break:break-word;}
+.row-actions{display:flex; gap:2px; align-items:center;}
+.icon-btn{width:40px; height:40px; display:grid; place-items:center; padding:0;
+  color:var(--muted); background:transparent; border-color:transparent;}
+@media (hover:hover){.icon-btn:hover{background:var(--sunk); color:var(--accent);}}
+.icon-btn.danger:active{color:#B3261E;}
+.icon-btn svg{width:16px; height:16px;}
+.empty{padding:26px 4px; color:var(--muted); font-size:13.5px; border-bottom:0 !important; display:block;}
+
+/* ---------- add ---------- */
+.add{display:flex; flex-wrap:wrap; gap:8px;}
+.add input[type=text]{font:inherit; font-size:16px; min-height:44px; padding:10px 13px;
+  border:1px solid var(--line); border-radius:8px; background:var(--surface);
+  color:var(--ink); min-width:0;}
+.add input:focus-visible{outline:2px solid var(--accent); outline-offset:-1px; border-color:var(--accent);}
+#new-word{flex:2 1 200px; font-family:var(--mono);}
+#new-zh{flex:1 1 140px;}
+.add .btn{flex:0 0 auto;}
+
+.note{margin-top:22px; font-size:12.5px; color:var(--muted); line-height:1.75;}
+.note code{font-family:var(--mono); font-size:11.5px; background:var(--sunk); padding:1px 5px; border-radius:4px;}
+.warn{margin-top:14px; padding:11px 14px; border:1px solid var(--live);
+  background:var(--live-soft); color:var(--ink); border-radius:8px; font-size:13px;}
+
+/* ---------- detail sheet ---------- */
+.backdrop{position:fixed; inset:0; background:rgba(8,14,20,.55); z-index:40;
+  animation:fade .16s ease-out;}
+@keyframes fade{from{opacity:0}}
+.sheet{position:fixed; z-index:41; background:var(--surface); color:var(--ink);
+  display:flex; flex-direction:column; overscroll-behavior:contain;
+  inset:auto 0 0 0; max-height:88vh; border-radius:16px 16px 0 0;
+  box-shadow:0 -8px 40px -12px rgba(0,0,0,.45); animation:rise .2s ease-out;}
+@keyframes rise{from{transform:translateY(14px); opacity:.6}}
+@media (prefers-reduced-motion:reduce){
+  .backdrop,.sheet{animation:none}
+}
+@media (min-width:700px){
+  .sheet{inset:50% auto auto 50%; transform:translate(-50%,-50%);
+    width:min(660px,92vw); max-height:86vh; border-radius:14px;
+    box-shadow:0 24px 60px -20px rgba(0,0,0,.5);}
+  @keyframes rise{from{opacity:.5}}
+}
+.sheet-head{flex:none; padding:16px 18px 12px; border-bottom:1px solid var(--line);
+  display:flex; align-items:flex-start; justify-content:space-between; gap:12px;}
+.sheet-grip{width:38px; height:4px; border-radius:2px; background:var(--line);
+  margin:8px auto -4px;}
+@media (min-width:700px){.sheet-grip{display:none}}
+.sheet-hw{font-family:var(--mono); font-size:clamp(22px,5.2vw,28px); font-weight:600;
+  margin:0; word-break:break-word; line-height:1.15;}
+.sheet-zh{font-size:13px; color:var(--muted); margin:3px 0 0;}
+.sheet-body{overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 18px 22px;}
+.sheet-actions{flex:none; display:flex; gap:8px; padding:0 18px 14px; flex-wrap:wrap;}
+.sheet-actions .btn{flex:1 1 auto; min-width:96px;}
+.sec{margin:0 0 16px;}
+.sec:last-child{margin-bottom:0;}
+.sec-h{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--accent); font-weight:600; margin:0 0 6px;}
+.sec p{margin:0;}
+.sec ul{margin:0; padding-left:18px;}
+.sec ul li{margin:2px 0;}
+.sec ol{margin:0; padding-left:0; list-style:none; counter-reset:ex;}
+.sec ol li{counter-increment:ex; display:grid; grid-template-columns:auto 1fr auto;
+  gap:2px 8px; align-items:start; margin:0 0 9px;}
+.sec ol li::before{content:counter(ex) "."; font-family:var(--mono); font-size:13px;
+  color:var(--muted); grid-row:1; padding-top:1px;}
+.sec ol .en{grid-column:2; font-size:14.5px; line-height:1.5;}
+.sec ol .zh{grid-column:2; font-size:12.5px; color:var(--muted); line-height:1.5;}
+.sec ol .icon-btn{grid-column:3; grid-row:1 / span 2; width:36px; height:36px; align-self:center;}
+.tipbox{background:var(--accent-soft); border-left:3px solid var(--accent);
+  padding:9px 12px; border-radius:0 7px 7px 0; font-size:13.5px;}
+.x-btn{width:38px; height:38px; flex:none; display:grid; place-items:center;
+  padding:0; color:var(--muted); background:transparent; border-color:transparent;}
+.x-btn svg{width:18px; height:18px;}
+.no-detail{color:var(--muted); font-size:13.5px; margin:0 0 12px;}
+body.locked{overflow:hidden;}
+
+/* ---------- generating state ---------- */
+.gen{display:inline-flex; align-items:center; gap:6px; font-size:12px;
+  color:var(--accent); font-family:var(--mono); letter-spacing:.02em;}
+.gen i{width:9px; height:9px; border-radius:50%; border:1.5px solid var(--accent);
+  border-top-color:transparent; display:block; animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.gen i{animation:none; border-top-color:var(--accent)}}
+.gen.err{color:var(--live);} .gen.err i{display:none;}
+.status{min-height:20px; margin:8px 0 0; font-size:12.5px;}
+
+/* tablet landscape / desktop: two columns of words */
+@media (min-width:900px){
+  .wrap{max-width:960px;}
+  ul.words{display:grid; grid-template-columns:1fr 1fr; column-gap:32px;}
+}
+@media (max-width:420px){
+  .wrap{padding-block:22px 64px;}
+  .readout{padding:16px 16px 15px;}
+  .controls{padding:11px 13px; gap:12px 16px;}
+  .readout-actions .btn{flex:1 1 auto;}
+}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">TOEIC · Vocabulary</p>
+  <h1>單字發音板</h1>
+  <p class="sub">點單字會唸出來並展開完整解析(字根、搭配、例句、提點);旁邊的喇叭鍵只唸不展開。上方可切換每天學的字或看全部。</p>
+
+  <div class="readout" id="readout">
+    <div class="readout-top">
+      <span class="lamp"><i></i><span id="lamp-text">Ready</span></span>
+      <span class="eyebrow" id="accent-tag">en-US</span>
+    </div>
+    <p class="word-display placeholder" id="word-display">—</p>
+    <p class="zh-display" id="zh-display"></p>
+    <p class="icao" id="icao"></p>
+    <div class="readout-actions">
+      <button class="btn primary" id="btn-speak" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a9 9 0 0 1 0 14"></path></svg>
+        唸一次
+      </button>
+      <button class="btn" id="btn-slow" type="button">慢速</button>
+      <button class="btn" id="btn-spell" type="button">拼讀字母</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="ctl">
+      <span class="ctl-label">口音</span>
+      <div class="seg" id="seg-accent" role="group" aria-label="口音">
+        <button type="button" data-lang="en-US" aria-pressed="true">美 US</button>
+        <button type="button" data-lang="en-GB" aria-pressed="false">英 UK</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <label class="ctl-label" for="rate">語速</label>
+      <input type="range" id="rate" min="0.5" max="1.15" step="0.05" value="0.9">
+      <span class="rate-val" id="rate-val">0.90×</span>
+    </div>
+    <div class="ctl">
+      <label class="ctl-label" for="voice">語音</label>
+      <select id="voice"><option>載入中…</option></select>
+    </div>
+  </div>
+
+  <div class="days" id="days" role="group" aria-label="選擇日期"></div>
+
+  <div class="list-head">
+    <span class="count" id="count">單字表</span>
+    <span class="head-actions">
+      <button class="btn mini" id="btn-all" type="button">依序播放</button>
+      <button class="btn mini" id="btn-stop" type="button" disabled>停止</button>
+    </span>
+  </div>
+  <ul class="words" id="words"></ul>
+
+  <form class="add" id="add-form">
+    <input type="text" id="new-word" placeholder="輸入英文單字或片語" autocomplete="off"
+           autocapitalize="none" spellcheck="false" aria-label="英文單字">
+    <input type="text" id="new-zh" placeholder="中文(可留空)" autocomplete="off" aria-label="中文意思">
+    <button class="btn primary" type="submit">加入今天</button>
+  </form>
+  <p class="status" id="status"></p>
+
+  <p class="note">
+    新加的字會自動歸到<strong>今天</strong>,並且會自動請 Claude 寫好完整解析(字根、搭配、例句、提點),
+    幾秒後點那個字就看得到。上面的日期列可以切換某一天,或選「全部」看整個單字庫。<br>
+    <strong>ICAO 拼讀</strong>會用航空無線電字母表把單字一個一個唸出來(Foxtrot、Alfa、Charlie…),拼字容易記錯時很好用。<br>
+    語音清單來自你的裝置:macOS 與 iOS 上 <code>Samantha</code>、<code>Alex</code>、<code>Daniel</code>(英式)最自然。
+  </p>
+  <div id="warn-slot"></div>
+</div>
+
+<div class="backdrop" id="backdrop" hidden></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-hw" hidden>
+  <div class="sheet-grip"></div>
+  <div class="sheet-head">
+    <div>
+      <h2 class="sheet-hw" id="sheet-hw"></h2>
+      <p class="sheet-zh" id="sheet-zh"></p>
+    </div>
+    <button class="x-btn" id="sheet-close" type="button" aria-label="關閉">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </button>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn primary" id="sheet-speak" type="button">唸一次</button>
+    <button class="btn" id="sheet-slow" type="button">慢速</button>
+    <button class="btn" id="sheet-spell" type="button">拼讀</button>
+  </div>
+  <div class="sheet-body" id="sheet-body"></div>
+</section>
+
+<script>
+(function(){
+  "use strict";
+  var ICAO={a:"Alfa",b:"Bravo",c:"Charlie",d:"Delta",e:"Echo",f:"Foxtrot",g:"Golf",h:"Hotel",
+    i:"India",j:"Juliett",k:"Kilo",l:"Lima",m:"Mike",n:"November",o:"Oscar",p:"Papa",q:"Quebec",
+    r:"Romeo",s:"Sierra",t:"Tango",u:"Uniform",v:"Victor",w:"Whiskey",x:"X-ray",y:"Yankee",z:"Zulu"};
+  var WD=["日","一","二","三","四","五","六"];
+
+  var $=function(id){return document.getElementById(id);};
+  var readout=$("readout"), wordDisplay=$("word-display"), zhDisplay=$("zh-display"),
+      icaoEl=$("icao"), lampText=$("lamp-text"), accentTag=$("accent-tag"),
+      voiceSel=$("voice"), rateEl=$("rate"), rateVal=$("rate-val"),
+      listEl=$("words"), countEl=$("count"), daysEl=$("days"),
+      btnStop=$("btn-stop"), btnAll=$("btn-all");
+
+  var supported = typeof window.speechSynthesis!=="undefined" &&
+                  typeof window.SpeechSynthesisUtterance!=="undefined";
+  var state={lang:"en-US", rate:0.9, voiceURI:null, voices:[], words:[],
+             current:null, day:"ALL", playing:false, db:null, sample:null, pending:{}};
+
+  function todayISO(){
+    var d=new Date();
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+  function dayLabel(iso){
+    var p=iso.split("-");
+    var d=new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+    return Number(p[1])+"/"+Number(p[2])+" "+WD[d.getDay()];
+  }
+
+  /* ---------- storage ---------- */
+  var LS="vocab-board-words", LSDAY="vocab-board-day";
+  function slug(w){
+    var s=w.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+    return s.slice(0,180) || ("w"+Date.now());
+  }
+  function lsRead(){ try{ return JSON.parse(localStorage.getItem(LS)||"[]"); }catch(e){ return []; } }
+  function lsWrite(a){ try{ localStorage.setItem(LS, JSON.stringify(a)); }catch(e){} }
+  function saveDay(d){ try{ localStorage.setItem(LSDAY, d); }catch(e){} }
+  function loadDay(){ try{ return localStorage.getItem(LSDAY)||"ALL"; }catch(e){ return "ALL"; } }
+
+  function addWord(word, zh){
+    word=word.trim(); if(!word) return null;
+    zh=(zh||"").trim();
+    var id=slug(word), body={word:word, zh:zh, createdAt:Date.now(), day:todayISO()};
+    if(state.db){
+      return state.db.doc("words/"+id).set(body).then(function(){ return id; })
+        .catch(function(e){ showWarn("存不起來:"+(e&&e.code||"unknown")); return null; });
+    }
+    var arr=state.words.filter(function(w){return w.id!==id;});
+    arr.unshift({id:id, word:body.word, zh:body.zh, createdAt:body.createdAt, day:body.day});
+    state.words=arr; lsWrite(arr); render();
+    return Promise.resolve(id);
+  }
+
+  /* ---------- ask Claude for the analysis ---------- */
+  function prompt(word){
+    return "你是多益英文家教。請為英文單字或片語「"+word+"」寫一份解析。\n\n"+
+      "要求:\n"+
+      "- 全部用繁體中文,語氣像家教在旁邊講話,不要用「及物動詞」「名詞化」這種語言學術語,直接說「後面要接受詞」。\n"+
+      "- 例句 3 句要真的不一樣:分別涵蓋不同詞性、不同搭配、或不同語境。\n"+
+      "- 例句語境貼近多益:辦公室、公告、合約、出差、客訴、會議。\n"+
+      "- 字根拆解要誠實。沒有明確字根的字就給一個記憶鉤子(聯想、同源字、諧音),並直說這個字沒有好拆的字根。絕對不要編造字源。\n"+
+      "- 搭配詞優先選多益常考的,介系詞搭配特別重要。\n"+
+      "- tip 只寫一到兩句,講這個字在多益怎麼考、要注意什麼,要短,不要廢話。\n\n"+
+      "只回傳 JSON,不要任何其他文字或 markdown 圍欄:\n"+
+      '{"zh":"一行中文意思,可附關鍵搭配,例如 遵守、照辦(+ with)",'+
+      '"pos":["v. 中文意思"],'+
+      '"root":"一句話講完字根怎麼幫助記憶",'+
+      '"coll":["collocation — 中文","collocation — 中文","collocation — 中文"],'+
+      '"ex":[{"en":"英文例句","zh":"中文翻譯"}],'+
+      '"tip":"一兩句話的提點"}';
+  }
+  function setStatus(text, cls){
+    var s=$("status");
+    s.innerHTML = text ? ('<span class="gen'+(cls?" "+cls:"")+'"><i></i>'+text+"</span>") : "";
+  }
+  function clean(v){ return typeof v==="string" ? v.trim() : ""; }
+  function strList(a){
+    return Array.isArray(a) ? a.map(clean).filter(Boolean).slice(0,6) : [];
+  }
+
+  function generate(id, word){
+    if(!state.sample || !id) return Promise.resolve(false);
+    state.pending[id]=true; render();
+    setStatus("正在幫 "+word+" 寫解析…");
+    return state.sample.json(prompt(word), {modelTier:"default"}).then(function(r){
+      if(!r || typeof r!=="object") throw {code:"bad_shape"};
+      var body={
+        pos: strList(r.pos), root: clean(r.root), coll: strList(r.coll),
+        tip: clean(r.tip),
+        ex: (Array.isArray(r.ex)?r.ex:[]).filter(function(e){ return e && clean(e.en); })
+              .slice(0,4).map(function(e){ return {en:clean(e.en), zh:clean(e.zh)}; })
+      };
+      var zh=clean(r.zh);
+      var existing=state.words.filter(function(w){ return w.id===id; })[0];
+      if(zh && (!existing || !existing.zh)) body.zh=zh;
+      if(state.db) return state.db.doc("words/"+id).update(body);
+      var arr=state.words.map(function(w){
+        if(w.id!==id) return w;
+        var m={}; for(var k in w) m[k]=w[k];
+        for(var j in body) m[j]=body[j];
+        return m;
+      });
+      state.words=arr; lsWrite(arr);
+      return null;
+    }).then(function(){
+      delete state.pending[id];
+      setStatus(word+" 的解析好了,點單字看。");
+      setTimeout(function(){ if($("status").textContent.indexOf(word)===0) setStatus(""); }, 6000);
+      render();
+      return true;
+    }).catch(function(e){
+      delete state.pending[id]; render();
+      var c=(e&&e.code)||"unknown";
+      var msg = c==="not_granted" ? "沒有取得向 Claude 提問的權限,字已存下來,解析可稍後再生成。"
+              : c==="rate_limited" ? "太頻繁了,等一下再幫 "+word+" 生成解析。"
+              : "解析生成失敗("+c+"),字已存下來,可以在該字的視窗按重新生成。";
+      setStatus(msg, "err");
+      return false;
+    });
+  }
+  function removeWord(id){
+    if(state.db){ state.db.doc("words/"+id).delete().catch(function(){}); }
+    else { state.words=state.words.filter(function(w){return w.id!==id;}); lsWrite(state.words); render(); }
+  }
+
+  /* ---------- speech ---------- */
+  function loadVoices(){
+    if(!supported) return;
+    var all=window.speechSynthesis.getVoices()||[];
+    state.voices=all.filter(function(v){ return /^en(-|_|$)/i.test(v.lang); });
+    var prev=state.voiceURI;
+    voiceSel.innerHTML="";
+    if(!state.voices.length){ voiceSel.innerHTML='<option value="">系統預設</option>'; return; }
+    var matching=state.voices.filter(function(v){
+      return v.lang.replace("_","-").toLowerCase()===state.lang.toLowerCase();
+    });
+    var pool = matching.length ? matching : state.voices;
+    pool.forEach(function(v){
+      var o=document.createElement("option");
+      o.value=v.voiceURI; o.textContent=v.name+" · "+v.lang.replace("_","-");
+      voiceSel.appendChild(o);
+    });
+    if(prev && pool.some(function(v){return v.voiceURI===prev;})){ voiceSel.value=prev; }
+    else{
+      var nice=["Samantha","Alex","Ava","Allison","Daniel","Serena","Kate","Google US English","Google UK English Female"];
+      var pick=null;
+      for(var i=0;i<nice.length && !pick;i++){
+        pool.forEach(function(v){ if(!pick && v.name.indexOf(nice[i])===0) pick=v; });
+      }
+      voiceSel.value=(pick||pool[0]).voiceURI;
+    }
+    state.voiceURI=voiceSel.value;
+  }
+  function currentVoice(){
+    for(var i=0;i<state.voices.length;i++){ if(state.voices[i].voiceURI===state.voiceURI) return state.voices[i]; }
+    return null;
+  }
+  function setLive(on,label){
+    readout.classList.toggle("live", !!on);
+    lampText.textContent = on ? (label||"Speaking") : "Ready";
+  }
+  function makeUtt(text, opts){
+    opts=opts||{};
+    var u=new window.SpeechSynthesisUtterance(text);
+    var v=currentVoice();
+    if(v){ u.voice=v; u.lang=v.lang; } else { u.lang=state.lang; }
+    u.rate = typeof opts.rate==="number" ? opts.rate : state.rate;
+    u.pitch=1;
+    return u;
+  }
+  function speak(text, opts){
+    opts=opts||{};
+    if(!supported){ showWarn("這個瀏覽器不支援語音合成,請改用 Safari、Chrome 或 Edge。"); return; }
+    window.speechSynthesis.cancel();
+    state.playing=false; btnStop.disabled=true;
+    var u=makeUtt(text,opts);
+    u.onstart=function(){ setLive(true,opts.label); };
+    u.onend=u.onerror=function(){ setLive(false); markRow(null); };
+    window.speechSynthesis.speak(u);
+  }
+  function show(word, zh){
+    state.current={word:word, zh:zh||""};
+    wordDisplay.textContent=word;
+    wordDisplay.classList.remove("placeholder");
+    zhDisplay.textContent=zh||"";
+    icaoEl.textContent="";
+  }
+  function icaoOf(word){
+    return word.toLowerCase().split("").map(function(ch){
+      if(ICAO[ch]) return ICAO[ch];
+      if(/[0-9]/.test(ch)) return ch;
+      if(ch===" ") return "/";
+      return null;
+    }).filter(Boolean).join(" · ");
+  }
+
+  /* ---------- days ---------- */
+  function dayList(){
+    var m={};
+    state.words.forEach(function(w){ var d=w.day||"未分類"; m[d]=(m[d]||0)+1; });
+    return Object.keys(m).sort(function(a,b){ return a<b?1:a>b?-1:0; })
+      .map(function(d){ return {day:d, n:m[d]}; });
+  }
+  function visibleWords(){
+    if(state.day==="ALL") return state.words;
+    return state.words.filter(function(w){ return (w.day||"未分類")===state.day; });
+  }
+  function renderDays(){
+    var days=dayList(), t=todayISO();
+    daysEl.innerHTML="";
+    var mk=function(key,label,n,isToday){
+      var b=document.createElement("button");
+      b.type="button"; b.className="day";
+      b.setAttribute("aria-pressed", String(state.day===key));
+      var l=document.createElement("span"); l.className="d-label"+(isToday?" d-today":"");
+      l.textContent=label+(isToday?" · 今天":"");
+      var c=document.createElement("span"); c.className="d-count"; c.textContent=n+" 字";
+      b.appendChild(l); b.appendChild(c);
+      b.addEventListener("click",function(){ state.day=key; saveDay(key); stopAll(); render(); });
+      return b;
+    };
+    daysEl.appendChild(mk("ALL","全部",state.words.length,false));
+    days.forEach(function(d){
+      daysEl.appendChild(mk(d.day, d.day==="未分類"?"未分類":dayLabel(d.day), d.n, d.day===t));
+    });
+  }
+
+  /* ---------- list ---------- */
+  var SVG_PLAY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg>';
+  var SVG_SLOW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>';
+  var SVG_DEL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9 7V5h6v2"></path><path d="M6 7l1 12h10l1-12"></path></svg>';
+
+  function render(){
+    renderDays();
+    var ws=visibleWords();
+    var scope = state.day==="ALL" ? "全部" : (state.day==="未分類"?"未分類":dayLabel(state.day));
+    countEl.textContent = scope+" · "+ws.length+" 個字";
+    btnAll.disabled = !ws.length;
+    listEl.innerHTML="";
+    if(!ws.length){
+      var li=document.createElement("li");
+      li.className="empty";
+      li.textContent = state.day==="ALL"
+        ? "還沒有單字。在下面輸入一個,或直接在對話裡叫我加進來。"
+        : "這一天還沒有單字。";
+      listEl.appendChild(li);
+      return;
+    }
+    ws.forEach(function(w){
+      var li=document.createElement("li");
+      li.dataset.id=w.id;
+      var main=document.createElement("div"); main.className="w-main";
+      var b=document.createElement("button");
+      b.type="button"; b.className="w-word"; b.textContent=w.word;
+      b.setAttribute("aria-label","打開 "+w.word+" 的解析");
+      b.addEventListener("click",function(){ openDetail(w); });
+      main.appendChild(b);
+      if(state.pending[w.id]){
+        var g=document.createElement("div");
+        g.innerHTML='<span class="gen"><i></i>解析生成中…</span>';
+        main.appendChild(g);
+      }else if(w.zh){
+        var z=document.createElement("div"); z.className="w-zh"; z.textContent=w.zh; main.appendChild(z);
+      }
+      var acts=document.createElement("div"); acts.className="row-actions";
+      acts.appendChild(iconBtn(SVG_PLAY,"唸 "+w.word,function(){ playOne(w); }));
+      acts.appendChild(iconBtn(SVG_SLOW,"慢速唸 "+w.word,function(){ playOne(w,0.55); }));
+      acts.appendChild(iconBtn(SVG_DEL,"刪除 "+w.word,function(){ removeWord(w.id); },"danger"));
+      li.appendChild(main); li.appendChild(acts);
+      listEl.appendChild(li);
+    });
+  }
+  function playOne(w, rate){
+    show(w.word,w.zh); markRow(w.id);
+    speak(w.word, rate?{rate:rate,label:"Slow"}:{});
+  }
+  function iconBtn(svg,label,fn,extra){
+    var b=document.createElement("button");
+    b.type="button"; b.className="icon-btn"+(extra?" "+extra:"");
+    b.innerHTML=svg; b.title=label; b.setAttribute("aria-label",label);
+    b.addEventListener("click",fn);
+    return b;
+  }
+  function markRow(id){
+    Array.prototype.forEach.call(listEl.children,function(li){
+      li.classList.toggle("speaking", !!id && li.dataset.id===id);
+    });
+  }
+  function showWarn(msg){ $("warn-slot").innerHTML='<div class="warn">'+msg+"</div>"; }
+
+  /* ---------- detail sheet ---------- */
+  var sheet=$("sheet"), backdrop=$("backdrop"), sheetBody=$("sheet-body"), lastFocus=null;
+
+  function sec(title, node){
+    var d=document.createElement("div"); d.className="sec";
+    var h=document.createElement("p"); h.className="sec-h"; h.textContent=title;
+    d.appendChild(h); d.appendChild(node); return d;
+  }
+  function ulOf(items){
+    var ul=document.createElement("ul");
+    items.forEach(function(s){ var li=document.createElement("li"); li.textContent=s; ul.appendChild(li); });
+    return ul;
+  }
+  function pOf(text, cls){
+    var p=document.createElement("p"); if(cls) p.className=cls; p.textContent=text; return p;
+  }
+  function exList(items){
+    var ol=document.createElement("ol");
+    items.forEach(function(e){
+      var li=document.createElement("li");
+      var en=document.createElement("span"); en.className="en"; en.textContent=e.en;
+      var zh=document.createElement("span"); zh.className="zh"; zh.textContent=e.zh;
+      li.appendChild(en); li.appendChild(zh);
+      li.appendChild(iconBtn(SVG_PLAY,"唸這句",function(){ speak(e.en,{rate:Math.min(state.rate,0.95)}); }));
+      ol.appendChild(li);
+    });
+    return ol;
+  }
+
+  function openDetail(w){
+    state.current={word:w.word, zh:w.zh||""};
+    $("sheet-hw").textContent=w.word;
+    $("sheet-zh").textContent=w.zh||"";
+    sheetBody.innerHTML="";
+    var has = (w.pos&&w.pos.length)||w.root||(w.coll&&w.coll.length)||(w.ex&&w.ex.length)||w.tip;
+    if(!has){
+      if(state.pending[w.id]){
+        var g=document.createElement("p");
+        g.innerHTML='<span class="gen"><i></i>解析生成中,幾秒後就會出現…</span>';
+        sheetBody.appendChild(g);
+      }else{
+        sheetBody.appendChild(pOf("這個字還沒有詳細解析。","no-detail"));
+        if(state.sample){
+          var gb=document.createElement("button");
+          gb.type="button"; gb.className="btn primary"; gb.textContent="生成解析";
+          gb.addEventListener("click",function(){
+            gb.disabled=true; gb.textContent="生成中…";
+            generate(w.id, w.word).then(function(ok){
+              if(ok){ var nw=state.words.filter(function(x){return x.id===w.id;})[0]; if(nw) openDetail(nw); }
+              else { gb.disabled=false; gb.textContent="再試一次"; }
+            });
+          });
+          sheetBody.appendChild(gb);
+        }
+      }
+    }else{
+      if(w.pos&&w.pos.length) sheetBody.appendChild(sec("詞性與意思", ulOf(w.pos)));
+      if(w.root)              sheetBody.appendChild(sec("字根拆解", pOf(w.root)));
+      if(w.coll&&w.coll.length) sheetBody.appendChild(sec("常見搭配", ulOf(w.coll)));
+      if(w.ex&&w.ex.length)   sheetBody.appendChild(sec("例句", exList(w.ex)));
+      if(w.tip)               sheetBody.appendChild(sec("提點", pOf(w.tip,"tipbox")));
+    }
+    lastFocus=document.activeElement;
+    backdrop.hidden=false; sheet.hidden=false;
+    document.body.classList.add("locked");
+    sheetBody.scrollTop=0;
+    $("sheet-close").focus();
+    show(w.word, w.zh);
+    speak(w.word);
+  }
+  function closeDetail(){
+    if(sheet.hidden) return;
+    if(supported) window.speechSynthesis.cancel();
+    setLive(false);
+    sheet.hidden=true; backdrop.hidden=true;
+    document.body.classList.remove("locked");
+    if(lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  backdrop.addEventListener("click", closeDetail);
+  $("sheet-close").addEventListener("click", closeDetail);
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeDetail(); });
+  $("sheet-speak").addEventListener("click",function(){ if(state.current) speak(state.current.word); });
+  $("sheet-slow").addEventListener("click",function(){ if(state.current) speak(state.current.word,{rate:0.55,label:"Slow"}); });
+  $("sheet-spell").addEventListener("click",function(){
+    if(!state.current) return;
+    speak(icaoOf(state.current.word).replace(/·/g,","),{rate:0.85,label:"Spelling"});
+  });
+
+  /* ---------- sequential playback (queued in one gesture: iOS-safe) ---------- */
+  function stopAll(){
+    state.playing=false;
+    if(supported) window.speechSynthesis.cancel();
+    setLive(false); markRow(null); btnStop.disabled=true;
+  }
+  btnStop.addEventListener("click", stopAll);
+  btnAll.addEventListener("click",function(){
+    if(!supported) return;
+    var ws=visibleWords(); if(!ws.length) return;
+    window.speechSynthesis.cancel();
+    state.playing=true; btnStop.disabled=false;
+    ws.forEach(function(w,i){
+      var u=makeUtt(w.word,{});
+      u.onstart=function(){ if(!state.playing) return; show(w.word,w.zh); markRow(w.id); setLive(true,"Playing"); };
+      u.onend=function(){ if(i===ws.length-1){ stopAll(); } };
+      u.onerror=function(){ if(i===ws.length-1){ stopAll(); } };
+      window.speechSynthesis.speak(u);
+      if(i<ws.length-1){
+        var gap=makeUtt(" ",{rate:0.6});
+        window.speechSynthesis.speak(gap);
+      }
+    });
+  });
+
+  /* ---------- events ---------- */
+  $("btn-speak").addEventListener("click",function(){ if(state.current) speak(state.current.word); });
+  $("btn-slow").addEventListener("click",function(){ if(state.current) speak(state.current.word,{rate:0.55,label:"Slow"}); });
+  $("btn-spell").addEventListener("click",function(){
+    if(!state.current) return;
+    var s=icaoOf(state.current.word);
+    icaoEl.textContent=s;
+    speak(s.replace(/·/g,","),{rate:0.85,label:"Spelling"});
+  });
+  $("seg-accent").addEventListener("click",function(e){
+    var b=e.target.closest("button[data-lang]"); if(!b) return;
+    state.lang=b.dataset.lang;
+    Array.prototype.forEach.call(this.querySelectorAll("button"),function(x){
+      x.setAttribute("aria-pressed", String(x===b));
+    });
+    accentTag.textContent=state.lang;
+    state.voiceURI=null; loadVoices();
+  });
+  rateEl.addEventListener("input",function(){
+    state.rate=parseFloat(this.value);
+    rateVal.textContent=state.rate.toFixed(2)+"×";
+  });
+  voiceSel.addEventListener("change",function(){ state.voiceURI=this.value; });
+  $("add-form").addEventListener("submit",function(e){
+    e.preventDefault();
+    var w=$("new-word").value.trim(), z=$("new-zh").value.trim();
+    if(!w) return;
+    if(state.day!=="ALL" && state.day!==todayISO()){ state.day=todayISO(); saveDay(state.day); }
+    show(w, z);
+    speak(w);
+    $("new-word").value=""; $("new-zh").value="";
+    $("new-word").focus();
+    var p=addWord(w,z);
+    if(p) p.then(function(id){ if(id) generate(id, w); });
+  });
+
+  /* ---------- boot ---------- */
+  if(!supported){
+    showWarn("這個瀏覽器不支援語音合成,單字表還是可以用,但沒有聲音。Safari、Chrome、Edge 都支援。");
+  }else{
+    loadVoices();
+    if(typeof window.speechSynthesis.addEventListener==="function"){
+      window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    }else{ window.speechSynthesis.onvoiceschanged=loadVoices; }
+    setTimeout(loadVoices,400); setTimeout(loadVoices,1500);
+  }
+
+  state.day=loadDay();
+  state.words=lsRead();
+  render();
+
+  if(window.claude && typeof window.claude.use==="function"){
+    window.claude.use("db").then(function(db){
+      if(!db) return;
+      state.db=db;
+      db.collection("words").orderBy("createdAt","desc").onSnapshot(function(snap){
+        state.words=snap.docs.map(function(d){
+          var v=d.data()||{};
+          return {id:d.id, word:String(v.word||d.id), zh:String(v.zh||""),
+                  createdAt:Number(v.createdAt)||0, day:String(v.day||"未分類"),
+                  pos:Array.isArray(v.pos)?v.pos:[], root:v.root?String(v.root):"",
+                  coll:Array.isArray(v.coll)?v.coll:[],
+                  ex:Array.isArray(v.ex)?v.ex.filter(function(e){return e&&e.en;}):[],
+                  tip:v.tip?String(v.tip):""};
+        });
+        render();
+      }, function(err){
+        showWarn("雲端單字表讀不到("+(err&&err.code||"unknown")+"),先用這台裝置的本機清單。");
+      });
+    }).catch(function(){});
+
+    window.claude.use("sample").then(function(s){ if(s) state.sample=s; }).catch(function(){});
+  }
+})();
+</script>

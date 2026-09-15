@@ -1,0 +1,33 @@
+{
+  "coll": [
+    "the term of the contract / lease — 合約、租約的期限",
+    "terms and conditions — 條款與條件(永遠複數)",
+    "in the short / long term — 短期 / 長期來看",
+    "payment terms — 付款條件"
+  ],
+  "createdAt": 1789393100000,
+  "day": "2026-01-06",
+  "ex": [
+    {
+      "en": "The term of the lease is three years, renewable upon mutual agreement.",
+      "zh": "本租約期限為三年,雙方同意後可續約。"
+    },
+    {
+      "en": "Please review the terms and conditions carefully before signing.",
+      "zh": "簽署前請仔細審閱條款與條件。"
+    },
+    {
+      "en": "Outsourcing may be cheaper in the short term, but it raises costs later.",
+      "zh": "委外在短期內可能較便宜,但之後會墊高成本。"
+    }
+  ],
+  "pos": [
+    "n. 期限、期間(the term of the contract 合約期間)",
+    "n. terms(複數)條款、條件",
+    "n. 用語、術語"
+  ],
+  "root": "拉丁 terminus(界限、終點),跟 terminal、terminate、determine 同家族 —— 航廈是航程的終點,合約的 term 是那條到此為止的界線。",
+  "tip": "單數 term = 期限,複數 terms = 條款,只差一個 s,是多益最愛的陷阱。",
+  "word": "term",
+  "zh": "合約期限;複數 terms = 條款"
+}

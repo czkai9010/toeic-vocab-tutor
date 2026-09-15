@@ -1,0 +1,31 @@
+{
+  "coll": [
+    "prevalent among + 族群 — 在…之間很普遍",
+    "prevalent in + 地區 / 產業 — 在…很盛行",
+    "become increasingly prevalent — 變得越來越普遍"
+  ],
+  "createdAt": 1789394100000,
+  "day": "2026-01-06",
+  "ex": [
+    {
+      "en": "Remote work has become increasingly prevalent in the technology sector.",
+      "zh": "遠距工作在科技業變得越來越普遍。"
+    },
+    {
+      "en": "This misconception is especially prevalent among first-time buyers.",
+      "zh": "這個誤解在首購族之間特別普遍。"
+    },
+    {
+      "en": "Mobile payment is more prevalent in Asia than in most European markets.",
+      "zh": "行動支付在亞洲比在多數歐洲市場普及。"
+    }
+  ],
+  "pos": [
+    "adj. 普遍的、盛行的",
+    "名詞形:prevalence(普遍程度)"
+  ],
+  "root": "pre-(在前)+ val(強壯,拉丁 valere)—— 力量跑在前面、成為主流。同家族:prevail、valid、value。",
+  "tip": "人用 among、地方或領域用 in;prevailing wind(盛行風)是同字根,一次記兩個。",
+  "word": "prevalent",
+  "zh": "普遍的、盛行的(+ among / in)"
+}

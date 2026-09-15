@@ -1,0 +1,30 @@
+{
+  "coll": [
+    "comply with the regulations — 遵守規定",
+    "in compliance with — 依照、符合(名詞形,公告常見)",
+    "failure to comply — 未能遵守(罰則條款愛用)"
+  ],
+  "createdAt": 1789392600000,
+  "day": "2026-01-06",
+  "ex": [
+    {
+      "en": "All employees must comply with the new safety guidelines.",
+      "zh": "全體員工都必須遵守新的安全守則。"
+    },
+    {
+      "en": "The building was renovated in compliance with local fire codes.",
+      "zh": "這棟建築依照當地消防法規進行了整修。"
+    },
+    {
+      "en": "Failure to comply may result in the cancellation of your contract.",
+      "zh": "未能遵守可能導致合約被取消。"
+    }
+  ],
+  "pos": [
+    "v. 遵守、照辦(規定、要求、命令)"
+  ],
+  "root": "com-(完全)+ ply(填滿),跟 complete 同源 —— 把對方要求的都填滿,就是「照辦」。",
+  "tip": "介系詞永遠是 with;公告合約看到名詞形 in compliance with,直接讀成「依照」。",
+  "word": "comply",
+  "zh": "遵守、照辦(+ with)"
+}

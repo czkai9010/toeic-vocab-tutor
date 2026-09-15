@@ -1,0 +1,12 @@
+# 產出的備份檔,不要進版控
+built/
+dump/
+out/
+*.__tmp.html
+
+# 個人單字庫(範例資料在 data/sample/ 底下,那個要進版控)
+data/private/
+
+.DS_Store
+__pycache__/
+*.pyc

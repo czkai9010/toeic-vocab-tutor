@@ -1,0 +1,31 @@
+{
+  "coll": [
+    "facilitate the process — 促進流程、讓流程更順",
+    "facilitate communication between — 促進…之間的溝通",
+    "facilitate a meeting / workshop — 主持會議、帶討論"
+  ],
+  "createdAt": 1789392700000,
+  "day": "2026-01-06",
+  "ex": [
+    {
+      "en": "The new software will facilitate communication between our overseas branches.",
+      "zh": "新軟體將促進我們海外分公司之間的溝通。"
+    },
+    {
+      "en": "Ms. Chen has been asked to facilitate next Monday's strategy workshop.",
+      "zh": "陳女士已受邀主持下週一的策略工作坊。"
+    },
+    {
+      "en": "The airport's new signage is designed to facilitate the movement of passengers.",
+      "zh": "機場的新標示是為了讓旅客動線更順暢而設計的。"
+    }
+  ],
+  "pos": [
+    "v. 促進、使更容易(讓事情順利進行)",
+    "v. 主持、帶領(會議、工作坊)"
+  ],
+  "root": "facil-(容易,同 facile、facility)+ -ate —— 讓事情變容易。順帶記 facility:讓生活變容易的設施。",
+  "tip": "後面直接接受詞,不加介系詞;名詞形選 facility(設備)還是 facilitator(人)是常考點。",
+  "word": "facilitate",
+  "zh": "促進、使更容易;主持(會議)"
+}
